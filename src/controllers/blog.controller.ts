@@ -114,12 +114,8 @@ export const updateBlog = async (req: Request, res: Response) => {
       for await (let tagId of payload.tags) {
         const tag: TagModel = await findOneTagById(tagId.toString());
         blog.tags = blog.tags.filter((blogTag) => {
-          console.log(`${blogTag.id} - ${tag.id} = `, blogTag.id !== tag.id);
-
           return blogTag.id == tag.id;
         });
-
-        console.log("blogTag: ", blog.tags);
 
         await save(blog);
 
