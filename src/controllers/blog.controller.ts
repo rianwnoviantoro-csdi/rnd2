@@ -16,10 +16,11 @@ export const create = async (req: RequestWithUserProfile, res: Response) => {
     let blogTags: TagModel[] = [];
 
     if (typeof payload.tags != "undefined") {
-      for await (const tagId of payload.tags) {
-        const tag: TagModel = await findOneTagById(tagId.id);
+      for await (let tagId of payload.tags) {
+        let tag: TagModel = await findOneTagById(tagId.toString());
         blogTags.push(tag);
       }
+
       payload.tags = blogTags;
     }
 
