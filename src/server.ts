@@ -3,9 +3,11 @@ import express, { Application, Request, Response } from "express";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import { createConnection } from "typeorm";
+import swaggerUi from "swagger-ui-express";
 import { DBConfig } from "./configs/database";
 import { env } from "./configs/env";
 import router from "./routers";
+import swaggerDocument from "./swagger.json";
 
 const app: Application = express();
 const PORT: number = env.port || 3000;
@@ -24,6 +26,10 @@ app.get("/", (req: Request, res: Response) => {
     data: [],
   });
 });
+
+if (env.env != "production") {
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+}
 
 createConnection(DBConfig)
   .then(() => {
