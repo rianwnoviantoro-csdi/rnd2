@@ -101,3 +101,63 @@ export const getOne = async (req: Request, res: Response) => {
     }
   }
 };
+
+export const updateBlog = async (req: Request, res: Response) => {
+  try {
+    const slug = req.params.slug;
+    const payload: IBlog = req.body;
+    const blog: BlogModel = await findOneBySlug(slug);
+
+    let blogTags: TagModel[] = [];
+
+    if (typeof payload.tags != "undefined") {
+      for await (let tagId of payload.tags) {
+        const tag: TagModel = await findOneTagById(tagId.toString());
+        blog.tags = blog.tags.filter((blogTag) => {
+          console.log(`${blogTag.id} - ${tag.id} = `, blogTag.id !== tag.id);
+
+          return blogTag.id == tag.id;
+        });
+
+        console.log("blogTag: ", blog.tags);
+
+        await save(blog);
+
+        blogTags.push(tag);
+      }
+
+      payload.id = blog.id;
+      payload.tags = blogTags;
+
+      if (payload.title) {
+        payload.slug = slugify(payload.title);
+      }
+
+      const result: BlogModel = await save(payload);
+
+      return res.status(201).json({
+        status: true,
+        statusCode: 201,
+        message: "Blog updated.",
+        data: result,
+      });
+    }
+
+    return res.status(200).json({
+      status: true,
+      statusCode: 200,
+      message: "Success.",
+      data: payload,
+    });
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return res.status(500).json({
+        status: false,
+        statusCode: 500,
+        message: "Something went wrong.",
+        data: [],
+      });
+    }
+  }
+};
