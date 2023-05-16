@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   create,
+  deleteBlog,
   getOne,
   list,
   updateBlog,
@@ -11,5 +12,6 @@ export const blogRouter: Router = Router();
 
 blogRouter.get("/", list);
 blogRouter.get("/:slug", getOne);
-blogRouter.patch("/:slug", useAuth, updateBlog);
 blogRouter.post("/", useAuth, create);
+blogRouter.patch("/:slug", useAuth, updateBlog);
+blogRouter.delete("/:slug", useAuth, deleteBlog);

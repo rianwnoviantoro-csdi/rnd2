@@ -82,3 +82,9 @@ export const findAll = async () => {
     },
   });
 };
+
+export const destroy = async (payload: BlogModel) => {
+  const repo = getRepository(BlogModel);
+
+  return await repo.remove(payload);
+};

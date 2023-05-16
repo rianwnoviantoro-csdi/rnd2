@@ -20,7 +20,7 @@ export class CommentModel {
   @ManyToOne(() => UserModel, (user) => user.comments)
   user: UserModel;
 
-  @ManyToOne(() => BlogModel, (blog) => blog.comments)
+  @ManyToOne(() => BlogModel, (blog) => blog.comments, { onDelete: "CASCADE" })
   @JoinColumn()
   blog: BlogModel;
 

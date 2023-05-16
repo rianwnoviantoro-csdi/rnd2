@@ -5,7 +5,12 @@ import { UserModel } from "../models/user.model";
 import { findOneById } from "../services/user.service";
 import { findOneById as findOneTagById } from "../services/tag.service";
 import slugify from "slugify";
-import { findAll, findOneBySlug, save } from "../services/blog.service";
+import {
+  destroy,
+  findAll,
+  findOneBySlug,
+  save,
+} from "../services/blog.service";
 import { BlogModel } from "../models/blog.model";
 import { TagModel } from "../models/tag.model";
 
@@ -31,13 +36,13 @@ export const create = async (req: RequestWithUserProfile, res: Response) => {
     payload.author = author;
     payload.slug = slugify(payload.title);
 
-    const result: BlogModel = await save(payload);
+    await save(payload);
 
     return res.status(201).json({
       status: true,
       statusCode: 201,
       message: "Blog created.",
-      data: result,
+      data: [],
     });
   } catch (e: unknown) {
     if (e instanceof Error) {
@@ -81,7 +86,14 @@ export const getOne = async (req: Request, res: Response) => {
 
     const result: BlogModel = await findOneBySlug(slug);
 
-    console.log(result);
+    if (!result) {
+      return res.status(404).json({
+        status: false,
+        statusCode: 404,
+        message: "Blog not found.",
+        data: [],
+      });
+    }
 
     return res.status(200).json({
       status: true,
@@ -102,11 +114,32 @@ export const getOne = async (req: Request, res: Response) => {
   }
 };
 
-export const updateBlog = async (req: Request, res: Response) => {
+export const updateBlog = async (
+  req: RequestWithUserProfile,
+  res: Response
+) => {
   try {
     const slug = req.params.slug;
     const payload: IBlog = req.body;
     const blog: BlogModel = await findOneBySlug(slug);
+
+    if (!blog) {
+      return res.status(404).json({
+        status: false,
+        statusCode: 404,
+        message: "Blog not found.",
+        data: [],
+      });
+    }
+
+    if (blog.author.id !== req.profile.id) {
+      return res.status(403).json({
+        status: false,
+        statusCode: 403,
+        message: "Forbidden.",
+        data: [],
+      });
+    }
 
     let blogTags: TagModel[] = [];
 
@@ -124,18 +157,20 @@ export const updateBlog = async (req: Request, res: Response) => {
 
       payload.id = blog.id;
       payload.tags = blogTags;
+      payload.author = blog.author;
+      payload.updatedAt = new Date();
 
       if (payload.title) {
         payload.slug = slugify(payload.title);
       }
 
-      const result: BlogModel = await save(payload);
+      await save(payload);
 
       return res.status(201).json({
         status: true,
         statusCode: 201,
         message: "Blog updated.",
-        data: result,
+        data: [],
       });
     }
 
@@ -144,6 +179,52 @@ export const updateBlog = async (req: Request, res: Response) => {
       statusCode: 200,
       message: "Success.",
       data: payload,
+    });
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      console.error(e.message);
+      return res.status(500).json({
+        status: false,
+        statusCode: 500,
+        message: "Something went wrong.",
+        data: [],
+      });
+    }
+  }
+};
+
+export const deleteBlog = async (
+  req: RequestWithUserProfile,
+  res: Response
+) => {
+  try {
+    const blog: BlogModel = await findOneBySlug(req.params.slug);
+
+    if (!blog) {
+      return res.status(404).json({
+        status: false,
+        statusCode: 404,
+        message: "Blog not found.",
+        data: [],
+      });
+    }
+
+    if (blog.author.id !== req.profile.id) {
+      return res.status(403).json({
+        status: false,
+        statusCode: 403,
+        message: "Forbidden.",
+        data: [],
+      });
+    }
+
+    await destroy(blog);
+
+    return res.status(200).json({
+      status: false,
+      statusCode: 200,
+      message: "Blog deleted.",
+      data: [],
     });
   } catch (e: unknown) {
     if (e instanceof Error) {
