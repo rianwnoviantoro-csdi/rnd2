@@ -29,7 +29,7 @@ export class BlogModel {
   author: UserModel;
 
   @ManyToMany(() => TagModel)
-  @JoinTable()
+  @JoinTable({ name: "blog_tags" })
   tags: TagModel[];
 
   @OneToMany(() => CommentModel, (comment) => comment.blog)
